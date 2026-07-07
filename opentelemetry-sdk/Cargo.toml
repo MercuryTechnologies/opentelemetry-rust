@@ -16,7 +16,7 @@ opentelemetry-http = { workspace = true, optional = true }
 futures-channel = { workspace = true }
 futures-executor = { workspace = true }
 futures-util = { workspace = true, features = ["std", "sink", "async-await-macro"] }
-percent-encoding = { workspace = true, optional = true }
+percent-encoding = { workspace = true }
 rand = { workspace = true, features = ["std", "std_rng", "small_rng", "os_rng", "thread_rng"], optional = true }
 serde = { workspace = true, features = ["derive", "rc"], optional = true }
 serde_json = { workspace = true, optional = true }
@@ -44,7 +44,7 @@ pprof = { workspace = true }
 
 [features]
 default = ["trace", "metrics", "logs", "internal-logs"]
-trace = ["opentelemetry/trace", "rand", "percent-encoding"]
+trace = ["opentelemetry/trace", "rand"]
 jaeger_remote_sampler = ["trace", "opentelemetry-http", "http", "serde", "serde_json", "url", "experimental_async_runtime"]
 logs = ["opentelemetry/logs"]
 metrics = ["opentelemetry/metrics"]

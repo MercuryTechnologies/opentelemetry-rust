@@ -2,6 +2,12 @@
 
 ## vNext
 
+- `EnvResourceDetector` now percent-decodes attribute values read from
+  `OTEL_RESOURCE_ATTRIBUTES`, matching the W3C Baggage encoding required by the
+  Resource SDK specification. For example,
+  `OTEL_RESOURCE_ATTRIBUTES=key=hello%20world` now yields the value
+  `hello world`. Keys are baggage tokens and are left unchanged.
+  ([#857](https://github.com/open-telemetry/opentelemetry-rust/issues/857))
 - Bound instruments are now available for `Gauge` and `UpDownCounter` via the
   new `BoundGauge<T>` and `BoundUpDownCounter<T>` types exposed by the
   `opentelemetry` crate. Requires the `experimental_metrics_bound_instruments`

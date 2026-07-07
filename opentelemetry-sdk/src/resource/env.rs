@@ -4,6 +4,7 @@
 //! variables.
 use crate::resource::{Resource, ResourceDetector};
 use opentelemetry::{Key, KeyValue, Value};
+use percent_encoding::percent_decode_str;
 use std::env;
 
 const OTEL_RESOURCE_ATTRIBUTES: &str = "OTEL_RESOURCE_ATTRIBUTES";
@@ -50,9 +51,13 @@ fn construct_otel_resources(s: String) -> Resource {
                 None => return None,
             };
             let key = parts.0.trim();
-            let value = parts.1.trim();
+            // Trim OWS *before* percent-decoding so that any encoded whitespace
+            // (e.g. `%20`) in the value is preserved. Per the Resource SDK spec
+            // the value MUST be percent-decoded; keys are baggage tokens and are
+            // not encoded.
+            let value = percent_decode_str(parts.1.trim()).decode_utf8_lossy();
 
-            Some(KeyValue::new(key.to_owned(), value.to_owned()))
+            Some(KeyValue::new(key.to_owned(), value.into_owned()))
         }))
         .build()
 }
@@ -124,7 +129,7 @@ mod tests {
             [
                 (
                     "OTEL_RESOURCE_ATTRIBUTES",
-                    Some("key=value, k = v , a= x, a=z,base64=SGVsbG8sIFdvcmxkIQ=="),
+                    Some("key=value, k = v , a= x, a=z,base64=SGVsbG8sIFdvcmxkIQ==,encoded=user%20id%3D42%2C%20name%3D%22foo%22"),
                 ),
                 ("IRRELEVANT", Some("20200810")),
             ],
@@ -140,6 +145,8 @@ mod tests {
                             KeyValue::new("a", "x"),
                             KeyValue::new("a", "z"),
                             KeyValue::new("base64", "SGVsbG8sIFdvcmxkIQ=="), // base64('Hello, World!')
+                            // Values are percent-decoded per the Resource SDK spec.
+                            KeyValue::new("encoded", "user id=42, name=\"foo\""),
                         ])
                         .build()
                 );
